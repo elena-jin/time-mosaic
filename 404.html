@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      // Get the path including the repository name
+      var path = location.pathname.split('/').slice(0, 2).join('/') + '/';
+      // Redirect to the index page using the correct base path
+      location.replace(path);
+    </script>
+  </head>
+  <body>
+    <p>If you are not redirected automatically, follow this <a href="/">link to the app</a>.</p>
+  </body>
+</html>
