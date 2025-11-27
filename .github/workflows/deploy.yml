@@ -4,35 +4,38 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master
+      - master # **CRITICAL: Ensure this matches your primary branch ('main' or 'master')**
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository code
+      # 1. Checkout the repository code - FIX APPLIED HERE
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Set up Node.js
+        with:
+          # This fetches the full history, necessary for peaceiris/actions-gh-pages
+          fetch-depth: 0 
+          
+      # 2. Set up Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a modern Node version
+          node-version: '20' 
 
-      # Install dependencies
+      # 3. Install dependencies
       - name: Install Dependencies
         run: npm install
 
-      # Build the Vite project (This creates the 'dist' folder)
+      # 4. Build the Vite project (Creates the 'dist' folder)
       - name: Build Project
         run: npm run build
 
-      # Deploy to GitHub Pages
+      # 5. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist # Tells the action to deploy the contents of the 'dist' folder
-          cname: elena-jin.github.io # Optional: Set custom domain if you had one, but this should be omitted if you only want the repo URL
+          # The destination branch defaults to gh-pages
