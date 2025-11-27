@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       // --- ADD THIS LINE ---
-      base: '/time-mosaic/', // Replace 'the-time-mosaic' with your actual repo name
+      // base: '/time-mosaic/', // Replace 'the-time-mosaic' with your actual repo name
       // --------------------
       server: {
         port: 3000,
