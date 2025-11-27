@@ -1,41 +1,52 @@
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
+# .github/workflows/deploy.yml - The Official GitHub Pages Method
+name: Deploy Vite App to GitHub Pages
 
 on:
   push:
     branches:
-      - master # **CRITICAL: Ensure this matches your primary branch ('main' or 'master')**
+      - master 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Grant the necessary permissions for the GITHUB_TOKEN to deploy pages
+permissions:
+  contents: read
+  pages: write # <--- This is CRITICAL for deployment
+  id-token: write
+
+concurrency:
+  cancel-in-progress: true
+  group: pages
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checkout the repository code - FIX APPLIED HERE
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          # This fetches the full history, necessary for peaceiris/actions-gh-pages
-          fetch-depth: 0 
-          
-      # 2. Set up Node.js
-      - name: Setup Node
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' 
+          node-version: '20'
 
-      # 3. Install dependencies
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      # 4. Build the Vite project (Creates the 'dist' folder)
-      - name: Build Project
+      - name: Build project (Uses base: /time-mosaic/)
         run: npm run build
+        
+      # 1. Configure the GitHub Pages environment
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-      # 5. Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      # 2. Upload the 'dist' artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist # Tells the action to deploy the contents of the 'dist' folder
-          # The destination branch defaults to gh-pages
+          path: './dist' # Uploads the contents of the 'dist' directory
+
+      # 3. Deploy the artifact
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
