@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { UserStats, RoastResponse } from '../types';
 import Button from './Button';
+import { playHoverSound } from '../utils/soundEngine';
 
 interface MosaicFilterProps {
   stats: UserStats;
@@ -20,9 +21,8 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
   const animationRef = useRef<number>();
 
   // Calculate chaos level based on screen time (0 to 1 scale)
-  // 1 hour is low chaos, 12 hours is max chaos
   const chaosLevel = Math.min(Math.max(stats.dailyScreenTime / 12, 0.1), 1);
-  const cellSize = Math.floor(20 - (chaosLevel * 10)); // Higher chaos = smaller cells = more noise
+  const cellSize = Math.floor(20 - (chaosLevel * 10)); 
   
   useEffect(() => {
     const startVideo = async () => {
@@ -60,33 +60,25 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
         return;
     }
 
-    // Set canvas size to match video
     if (canvas.width !== video.videoWidth) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
     }
 
-    // Draw original frame to temporary context or just read from video
-    // We draw small to get average colors easily
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
     if (!tempCtx) return;
 
-    // Grid dimensions
     const cols = Math.floor(canvas.width / cellSize);
     const rows = Math.floor(canvas.height / cellSize);
 
     tempCanvas.width = cols;
     tempCanvas.height = rows;
-    
-    // Draw the video scaled down to grid size (pixelation step)
     tempCtx.drawImage(video, 0, 0, cols, rows);
-    
-    // Get the pixel data
     const frameData = tempCtx.getImageData(0, 0, cols, rows).data;
 
-    // Clear main canvas
-    ctx.fillStyle = '#000';
+    // Background for the canvas - make it dark ink for contrast
+    ctx.fillStyle = '#1a1a1a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const time = Date.now() / 1000;
@@ -102,27 +94,21 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
         const posX = x * cellSize;
         const posY = y * cellSize;
 
-        // Visual logic based on stats
-        // If brightness is low, just black
         if (brightness < 30) continue;
 
-        // Choose symbol
         let symbol = '';
         const randomSeed = Math.sin(x * y + time);
         
-        // High chaos level increases probability of "brainrot" symbols over simple colors
         if (Math.random() < chaosLevel * 0.8 && brightness > 100) {
-            // Brainrot mode
             const symbolSet = Math.random() > 0.5 ? BRAINROT_SYMBOLS : TECH_LOGOS;
             symbol = symbolSet[Math.floor(Math.abs(randomSeed * 100)) % symbolSet.length];
         } else {
-            // Pixel mode
             ctx.fillStyle = `rgb(${r},${g},${b})`;
             ctx.fillRect(posX, posY, cellSize - 1, cellSize - 1);
             continue;
         }
 
-        ctx.font = `${cellSize}px monospace`;
+        ctx.font = `${cellSize}px "Pixelify Sans"`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = `rgb(${r},${g},${b})`;
@@ -130,7 +116,6 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
       }
     }
 
-    // Glitch effect if chaos is high
     if (chaosLevel > 0.6 && Math.random() > 0.9) {
         const sliceHeight = Math.random() * 50;
         const sliceY = Math.random() * canvas.height;
@@ -145,31 +130,31 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
     if (permissionGranted) {
       drawMosaic();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permissionGranted]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 bg-digital-black">
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 bg-paper bg-[url('data:image/svg+xml;base64,...')]">
       <div className="max-w-4xl w-full text-center space-y-6">
         
-        <div className="flex justify-between items-center w-full">
-            <h2 className="text-2xl font-bold text-neon-blue tracking-tighter">THE MIRROR OF CONSUMPTION</h2>
+        <div className="flex justify-between items-center w-full border-b-2 border-ink pb-2">
+            <h2 className="text-2xl font-serif font-bold text-ink">THE MIRROR OF CONSUMPTION</h2>
             <div className="text-right">
-                <p className="text-xs text-gray-400">CHAOS FACTOR</p>
-                <div className="w-32 h-2 bg-gray-800 mt-1">
-                    <div className="h-full bg-neon-red transition-all duration-1000" style={{ width: `${chaosLevel * 100}%`}}></div>
+                <p className="text-xs font-pixel text-ink uppercase">Chaos Factor</p>
+                <div className="w-32 h-4 border-2 border-ink bg-white mt-1 relative">
+                    <div className="h-full bg-gum absolute top-0 left-0 transition-all duration-1000" style={{ width: `${chaosLevel * 100}%`}}></div>
+                    <div className="absolute inset-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzhhZWGMYAEYB8RmROaABADeOQ8CXl/xfgAAAABJRU5ErkJggg==')] opacity-20"></div>
                 </div>
             </div>
         </div>
 
-        <div className="relative border-4 border-gray-800 rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)] bg-black aspect-video">
+        <div className="relative border-4 border-ink bg-void aspect-video shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]">
           {!permissionGranted && !error && (
-            <div className="absolute inset-0 flex items-center justify-center text-neon-green animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center text-paper font-pixel animate-pulse">
               INITIALIZING SENSOR ARRAY...
             </div>
           )}
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center text-neon-red px-8 text-center">
+            <div className="absolute inset-0 flex items-center justify-center text-gum px-8 text-center font-bold">
               {error}
             </div>
           )}
@@ -185,22 +170,25 @@ const MosaicFilter: React.FC<MosaicFilterProps> = ({ stats, roast, onBack, onNex
             className="w-full h-full object-cover"
           />
           
-          {/* Overlay Text for High Chaos */}
           {chaosLevel > 0.5 && (
-            <div className="absolute top-4 left-4 right-4 pointer-events-none">
-                 <p className="text-neon-red font-bold text-lg bg-black/50 inline-block px-2 backdrop-blur-sm transform -rotate-1">
-                    WARNING: ATTENTION LEAKAGE DETECTED
+            <div className="absolute top-4 left-4 right-4 pointer-events-none transform -rotate-1">
+                 <p className="text-paper bg-gum inline-block px-4 py-1 font-serif text-xl shadow-lg border-2 border-ink">
+                    ⚠ ATTENTION LEAKAGE DETECTED
                  </p>
             </div>
           )}
         </div>
 
         {roast && (
-          <div className="bg-gray-900/80 border border-neon-purple p-6 rounded-md backdrop-blur-md shadow-lg transform transition-all duration-500 hover:scale-[1.01]">
-            <p className="text-lg md:text-xl text-white font-medium mb-2">"{roast.roast}"</p>
-            <div className="h-px w-full bg-gray-700 my-4"></div>
-            <p className="text-sm text-neon-green uppercase tracking-wide">Alternative Timeline Simulation:</p>
-            <p className="text-gray-300 mt-1">{roast.alternativeActivity}</p>
+          <div 
+            className="bg-paper border-2 border-ink p-6 shadow-[8px_8px_0px_0px_#e63946] text-left relative transform hover:-translate-y-1 transition-transform"
+            onMouseEnter={() => playHoverSound('pop')}
+          >
+            <div className="absolute -top-3 -right-3 bg-gold text-ink px-2 py-1 font-pixel text-xs border border-ink transform rotate-3">AI ANALYSIS</div>
+            <p className="text-xl md:text-2xl text-ink font-serif mb-4 leading-tight">"{roast.roast}"</p>
+            <div className="h-px w-full bg-ink/20 my-4"></div>
+            <p className="text-xs text-gum uppercase font-bold tracking-widest mb-1">Alternative Timeline:</p>
+            <p className="text-ink font-pixel text-lg">{roast.alternativeActivity}</p>
           </div>
         )}
 

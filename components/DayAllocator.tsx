@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserStats } from '../types';
 import Button from './Button';
 import { generateScheduleRoast } from '../services/geminiService';
+import { playHoverSound } from '../utils/soundEngine';
 
 interface DayAllocatorProps {
   stats: UserStats;
@@ -9,11 +10,11 @@ interface DayAllocatorProps {
 }
 
 const CATEGORIES = [
-  { id: 'sleep', label: 'Sleep', emoji: '💤', color: 'text-blue-400' },
-  { id: 'work', label: 'Work/Study', emoji: '💼', color: 'text-orange-400' },
-  { id: 'commute', label: 'Commute/Chore', emoji: '🚌', color: 'text-gray-400' },
-  { id: 'social', label: 'Social', emoji: '👯', color: 'text-pink-400' },
-  { id: 'hobbies', label: 'Hobbies/Skill', emoji: '🎨', color: 'text-green-400' },
+  { id: 'sleep', label: 'Sleep', emoji: '💤', color: 'bg-blue-200' },
+  { id: 'work', label: 'Work/Study', emoji: '💼', color: 'bg-orange-200' },
+  { id: 'commute', label: 'Commute', emoji: '🚌', color: 'bg-gray-300' },
+  { id: 'social', label: 'Social', emoji: '👯', color: 'bg-pink-200' },
+  { id: 'hobbies', label: 'Hobbies', emoji: '🎨', color: 'bg-green-200' },
 ];
 
 const DayAllocator: React.FC<DayAllocatorProps> = ({ stats, onRestart }) => {
@@ -40,7 +41,6 @@ const DayAllocator: React.FC<DayAllocatorProps> = ({ stats, onRestart }) => {
   };
 
   useEffect(() => {
-    // Debounce the Gemini call
     const timer = setTimeout(async () => {
       if (doomscrollTime > 0.5 && !isOverbooked) {
         setLoadingRoast(true);
@@ -58,19 +58,23 @@ const DayAllocator: React.FC<DayAllocatorProps> = ({ stats, onRestart }) => {
   }, [doomscrollTime, isOverbooked]);
 
   return (
-    <div className="min-h-screen bg-digital-black flex flex-col items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-gray-900/50 border border-gray-800 p-8 rounded-xl backdrop-blur-sm shadow-2xl">
-        <h2 className="text-3xl font-bold text-white mb-2 text-center">Design Your Ideal Day</h2>
-        <p className="text-gray-400 text-center mb-8">Allocate your 24 hours. The leftovers are dangerous.</p>
+    <div className="min-h-screen bg-paper flex flex-col items-center justify-center p-4">
+      <div className="max-w-2xl w-full bg-white border-4 border-ink p-8 shadow-[12px_12px_0px_0px_#1a1a1a] relative">
+        <div className="absolute -top-4 -left-4 bg-gum text-white px-4 py-1 font-serif text-lg transform -rotate-2 border-2 border-ink">
+            Architecture of a Day
+        </div>
+
+        <h2 className="text-4xl font-serif text-ink mb-2 text-center mt-4">Design Your Ideal Day</h2>
+        <p className="text-ink/60 text-center mb-8 font-pixel">Allocate your 24 hours. The leftovers are dangerous.</p>
 
         <div className="space-y-6 mb-8">
           {CATEGORIES.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-4">
-              <div className="w-8 text-2xl">{cat.emoji}</div>
+            <div key={cat.id} className="flex items-center gap-4 group">
+              <div className="w-8 text-2xl group-hover:scale-110 transition-transform" onMouseEnter={() => playHoverSound('pop')}>{cat.emoji}</div>
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <label className={`font-mono text-sm uppercase ${cat.color}`}>{cat.label}</label>
-                  <span className="text-white font-bold">{allocation[cat.id]}h</span>
+                  <label className="font-pixel text-sm uppercase text-ink">{cat.label}</label>
+                  <span className="text-ink font-bold bg-gray-100 px-2 border border-ink">{allocation[cat.id]}h</span>
                 </div>
                 <input
                   type="range"
@@ -79,27 +83,27 @@ const DayAllocator: React.FC<DayAllocatorProps> = ({ stats, onRestart }) => {
                   step="0.5"
                   value={allocation[cat.id]}
                   onChange={(e) => handleChange(cat.id, parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-neon-blue hover:accent-white transition-all"
+                  className="w-full h-4 bg-gray-200 rounded-none border-2 border-ink appearance-none cursor-pointer accent-gum hover:accent-ink transition-all"
                 />
               </div>
             </div>
           ))}
         </div>
 
-        <div className="border-t-2 border-dashed border-gray-700 pt-6">
+        <div className="border-t-4 border-dashed border-ink/20 pt-6">
             <div className="flex justify-between items-end mb-4">
                 <div className="text-left">
-                    <p className="text-xs text-gray-500 uppercase tracking-widest">Unallocated Time</p>
-                    <h3 className={`text-4xl font-bold ${doomscrollTime > 3 ? 'text-neon-red animate-pulse' : 'text-neon-blue'}`}>
+                    <p className="text-xs text-ink/50 uppercase tracking-widest">Unallocated Time</p>
+                    <h3 className={`text-5xl font-serif ${doomscrollTime > 3 ? 'text-gum' : 'text-ink'}`}>
                         {doomscrollTime.toFixed(1)}h
                     </h3>
                 </div>
                 <div className="text-right max-w-[50%]">
-                     <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Analysis</p>
+                     <p className="text-xs text-ink/50 uppercase tracking-widest mb-1">Analysis</p>
                      {loadingRoast ? (
-                         <span className="text-xs text-neon-green">Simulating consequences...</span>
+                         <span className="text-xs text-gold bg-ink px-1 animate-pulse">Calculating Fate...</span>
                      ) : (
-                        <p className={`text-sm italic ${isOverbooked ? 'text-neon-red' : 'text-gray-300'}`}>
+                        <p className={`text-sm font-pixel leading-tight ${isOverbooked ? 'text-gum font-bold' : 'text-ink'}`}>
                             {geminiRoast}
                         </p>
                      )}
@@ -107,23 +111,27 @@ const DayAllocator: React.FC<DayAllocatorProps> = ({ stats, onRestart }) => {
             </div>
 
             {/* Visual Bar */}
-            <div className="h-6 w-full bg-gray-800 rounded-full overflow-hidden flex">
+            <div className="h-12 w-full border-2 border-ink flex overflow-hidden shadow-inner bg-gray-100">
                 {CATEGORIES.map(cat => (
                      <div 
                         key={cat.id} 
                         style={{ width: `${(allocation[cat.id] / 24) * 100}%`}} 
-                        className={`h-full ${cat.color.replace('text', 'bg')} opacity-80`}
+                        className={`h-full ${cat.color} border-r border-ink last:border-0`}
+                        title={cat.label}
                      />
                 ))}
                 {doomscrollTime > 0 && !isOverbooked && (
                     <div 
                         style={{ width: `${(doomscrollTime / 24) * 100}%`}}
-                        className="h-full bg-neon-red pattern-diagonal-lines animate-pulse"
+                        className="h-full bg-gum relative overflow-hidden"
                         title="Doomscroll Zone"
-                    />
+                    >
+                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8cGF0aCBkPSJNLTExLTExTDExLTExTDExIDExTC0xMSAxMUwtMTEtMTFaIiBmaWxsPSIjMDAwIi8+Cjwvc3ZnPg==')] opacity-20"></div>
+                        <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold tracking-widest animate-pulse">VOID</span>
+                    </div>
                 )}
             </div>
-            {isOverbooked && <p className="text-neon-red text-center text-xs mt-2">SYSTEM ERROR: TIME OVERFLOW</p>}
+            {isOverbooked && <p className="text-gum text-center font-bold text-sm mt-2">⚠ SYSTEM ERROR: TIME OVERFLOW ⚠</p>}
         </div>
 
         <div className="mt-8 flex justify-center">
