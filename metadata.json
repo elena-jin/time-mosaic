@@ -1,7 +1,0 @@
-{
-  "name": "The Time Mosaic",
-  "description": "A cheeky, interactive reflection on digital consumption. Calculate your lifetime attention cost, see your digital self fragmented by brainrot in a real-time mirror, and reclaim your time.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
